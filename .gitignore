@@ -1,0 +1,11 @@
+/venv
+/env
+
+# Frontend
+/dist
+/node_modules
+
+
+# Misc
+.DS_Store
+.env
