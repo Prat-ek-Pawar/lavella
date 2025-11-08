@@ -102,6 +102,7 @@ const enquiryController = {
       });
 
     } catch (error) {
+      console.log('Enquiry email error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'Error sending enquiry. Please try again.' 
