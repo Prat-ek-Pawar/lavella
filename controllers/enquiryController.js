@@ -1,6 +1,6 @@
 const Enquiry = require('../models/Enquiry');
 const nodemailer = require('nodemailer');
-
+const mongoose = require('mongoose');
 const enquiryController = {
   // Send enquiry email - Public
   sendEnquiryEmail: async (req, res) => {
