@@ -33,15 +33,18 @@ const enquiryController = {
       }
 
       // Save enquiry to database
-      const enquiry = new Enquiry({
-        user_name,
-        user_phone,
-        user_email,
-        user_address,
-        items
-      });
-
-      await enquiry.save();
+     // Save enquiry to database – allow invalid product_id
+const enquiry = new Enquiry({
+  user_name,
+  user_phone,
+  user_email,
+  user_address,
+  items: items.map(it => ({
+    ...it,
+    product_id: mongoose.isValidObjectId(it.product_id) ? it.product_id : undefined // accept null / invalid
+  }))
+});
+await enquiry.save();
 
       // Create email transporter
       const transporter = nodemailer.createTransport({
