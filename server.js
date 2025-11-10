@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
-const cors = require('cors');
+
 
 // Load env
 dotenv.config();
@@ -16,15 +16,6 @@ const dbConnect = require('./config/DBConnect');
 const compressionMiddleware = require('./middleware/compressionMiddleware');
 const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware');
 const { apiLimiter } = require('./middleware/rateLimitMiddleware');
-const cors = require('cors');
-
-// Enable CORS for all origins
-app.use(cors({
-  origin: '*',           // allow all origins
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With', 'Accept'],
-  credentials: false     // set to true if you need cookies/auth
-}));
 
 // Routes
 const productRoutes = require('./routes/productRoutes');
