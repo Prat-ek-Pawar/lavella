@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
+const cors = require('cors');
 
 // Load env
 dotenv.config();
@@ -15,6 +16,15 @@ const dbConnect = require('./config/DBConnect');
 const compressionMiddleware = require('./middleware/compressionMiddleware');
 const errorHandlerMiddleware = require('./middleware/errorHandlerMiddleware');
 const { apiLimiter } = require('./middleware/rateLimitMiddleware');
+const cors = require('cors');
+
+// Enable CORS for all origins
+app.use(cors({
+  origin: '*',           // allow all origins
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With', 'Accept'],
+  credentials: false     // set to true if you need cookies/auth
+}));
 
 // Routes
 const productRoutes = require('./routes/productRoutes');
@@ -40,18 +50,13 @@ app.use(
 // When opened from disk, Origin is absent; browsers treat that as 'null'.
 // We explicitly set 'null' so credentialed requests from file:// also work.
 app.use((req, res, next) => {
-  const origin = req.headers.origin; // undefined on file://
-  res.header('Access-Control-Allow-Origin', origin || 'null'); // reflect or 'null'
-  res.header('Vary', 'Origin'); // cache correctness
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', '*'); // allow all origins
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    req.headers['access-control-request-headers'] || 'Authorization, Content-Type, X-Requested-With, Accept'
-  );
+  res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Requested-With, Accept');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
+
 
 // --- Logging ---
 if ((process.env.NODE_ENV || 'development') === 'development') {
