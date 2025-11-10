@@ -1,33 +1,47 @@
 // services/EmailService.js
-const nodemailer = require('nodemailer');
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 class EmailService {
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || 'gmail',
+      service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS,
       },
       // safety timeouts
       connectionTimeout: 10 * 1000,
       greetingTimeout: 10 * 1000,
-      socketTimeout: 10 * 1000
+      socketTimeout: 10 * 1000,
     });
   }
 
   async sendEnquiryEmail(enquiryData) {
-    const { user_name, user_phone, user_email, user_address, items, enquiry_id } = enquiryData;
+    const {
+      user_name,
+      user_phone,
+      user_email,
+      user_address,
+      items,
+      enquiry_id,
+    } = enquiryData;
 
-    let itemsHtml = '';
+    let itemsHtml = "";
     items.forEach((it, i) => {
       itemsHtml += `
         <tr>
           <td style="padding:10px;border:1px solid #ddd">${i + 1}</td>
           <td style="padding:10px;border:1px solid #ddd">${it.title}</td>
-          <td style="padding:10px;border:1px solid #ddd">${it.selected_color_texture || 'N/A'}</td>
-          <td style="padding:10px;border:1px solid #ddd">${it.quantity || 1}</td>
-          <td style="padding:10px;border:1px solid #ddd">${it.price_at_time ? `₹${it.price_at_time}` : 'Price on request'}</td>
+          <td style="padding:10px;border:1px solid #ddd">${
+            it.selected_color_texture || "N/A"
+          }</td>
+          <td style="padding:10px;border:1px solid #ddd">${
+            it.quantity || 1
+          }</td>
+          <td style="padding:10px;border:1px solid #ddd">${
+            it.price_at_time ? `₹${it.price_at_time}` : "Price on request"
+          }</td>
         </tr>`;
     });
 
@@ -45,8 +59,8 @@ class EmailService {
         <h2>Customer Details</h2>
         <p><strong>Name:</strong> ${user_name}</p>
         <p><strong>Phone:</strong> ${user_phone}</p>
-        <p><strong>Email:</strong> ${user_email || 'Not provided'}</p>
-        <p><strong>Address:</strong> ${user_address || 'Not provided'}</p>
+        <p><strong>Email:</strong> ${user_email || "Not provided"}</p>
+        <p><strong>Address:</strong> ${user_address || "Not provided"}</p>
         <p><strong>Enquiry ID:</strong> ${enquiry_id}</p>
         <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
       </div>
@@ -59,25 +73,34 @@ class EmailService {
 </html>`;
 
     const mailOptions = {
-      from: `"${process.env.BUSINESS_NAME || 'Furnishing Store'}" <${process.env.EMAIL_USER}>`,
+      from: `"${process.env.BUSINESS_NAME || "Furnishing Store"}" <${
+        process.env.EMAIL_USER
+      }>`,
       to: process.env.OWNER_EMAIL || process.env.EMAIL_USER,
       subject: `New Enquiry from ${user_name} – ${enquiry_id}`,
       html,
-      text: this.getPlainTextVersion(enquiryData)
+      text: this.getPlainTextVersion(enquiryData),
     };
 
     const result = await this.transporter.sendMail(mailOptions);
     return { success: true, messageId: result.messageId };
   }
 
-  getPlainTextVersion({ user_name, user_phone, user_email, user_address, items, enquiry_id }) {
-    let itemsList = '';
+  getPlainTextVersion({
+    user_name,
+    user_phone,
+    user_email,
+    user_address,
+    items,
+    enquiry_id,
+  }) {
+    let itemsList = "";
     items.forEach((it, i) => {
       itemsList += `
 ${i + 1}. ${it.title}
-   Color/Texture: ${it.selected_color_texture || 'N/A'}
+   Color/Texture: ${it.selected_color_texture || "N/A"}
    Quantity: ${it.quantity || 1}
-   Price: ${it.price_at_time ? `₹${it.price_at_time}` : 'Price on request'}`;
+   Price: ${it.price_at_time ? `₹${it.price_at_time}` : "Price on request"}`;
     });
 
     return `NEW ENQUIRY RECEIVED
@@ -85,8 +108,8 @@ ${i + 1}. ${it.title}
 Customer Details:
 Name: ${user_name}
 Phone: ${user_phone}
-Email: ${user_email || 'Not provided'}
-Address: ${user_address || 'Not provided'}
+Email: ${user_email || "Not provided"}
+Address: ${user_address || "Not provided"}
 
 Enquiry ID: ${enquiry_id}
 Date: ${new Date().toLocaleString()}
@@ -100,10 +123,10 @@ This is an automated email from your Furnishing Catalogue System`;
   async testConnection() {
     try {
       await this.transporter.verify();
-      console.log('Email service is ready');
+      console.log("Email service is ready");
       return true;
     } catch (error) {
-      console.error('Email service error:', error);
+      console.error("Email service error:", error);
       return false;
     }
   }
