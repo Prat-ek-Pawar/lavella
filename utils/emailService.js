@@ -1,22 +1,46 @@
 // services/EmailService.js
 const nodemailer = require("nodemailer");
-require("dotenv").config();
+require("dotenv").config(); // Make sure .env is loaded before using variables
 
 class EmailService {
   constructor() {
+    // ✅ Use explicit Gmail SMTP configuration (avoids timeout & detection issues)
     this.transporter = nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || "gmail",
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // true = SSL/TLS, required for port 465
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      // safety timeouts
-      connectionTimeout: 10 * 1000,
-      greetingTimeout: 10 * 1000,
-      socketTimeout: 10 * 1000,
+      connectionTimeout: 30000, // 30 seconds
+      greetingTimeout: 20000,
+      socketTimeout: 30000,
     });
   }
 
+  // ---------------------------------------------------
+  // ✅ Test connection
+  // ---------------------------------------------------
+  async testConnection() {
+    try {
+      await this.transporter.verify();
+      console.log("✅ Email service connected successfully.");
+      return true;
+    } catch (error) {
+      console.error("❌ Email service connection failed:", error.message);
+      if (error.code === "ETIMEDOUT") {
+        console.error(
+          "⚠️ Connection timed out. This usually means your server cannot reach smtp.gmail.com on port 465."
+        );
+      }
+      return false;
+    }
+  }
+
+  // ---------------------------------------------------
+  // ✅ Send enquiry email
+  // ---------------------------------------------------
   async sendEnquiryEmail(enquiryData) {
     const {
       user_name,
@@ -49,7 +73,16 @@ class EmailService {
 <!DOCTYPE html>
 <html>
 <head>
-  <style>body{font-family:Arial,sans-serif;line-height:1.6;color:#333}.container{max-width:800px;margin:0 auto;padding:20px}.header{background:#4CAF50;color:white;padding:20px;text-align:center}.content{padding:20px;background:#f9f9f9}.customer-info{background:white;padding:15px;margin-bottom:20px;border-radius:5px}.products-table{width:100%;border-collapse:collapse;background:white}.products-table th{background:#4CAF50;color:white;padding:10px;text-align:left}.footer{text-align:center;padding:20px;color:#666;font-size:12px}</style>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { background: #4CAF50; color: white; padding: 20px; text-align: center; }
+    .content { padding: 20px; background: #f9f9f9; }
+    .customer-info { background: white; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    .products-table { width: 100%; border-collapse: collapse; background: white; }
+    .products-table th { background: #4CAF50; color: white; padding: 10px; text-align: left; }
+    .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -65,9 +98,16 @@ class EmailService {
         <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
       </div>
       <h2>Products Enquired</h2>
-      <table class="products-table"><thead><tr><th>Sr.</th><th>Product</th><th>Color/Texture</th><th>Quantity</th><th>Price</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+      <table class="products-table">
+        <thead>
+          <tr><th>Sr.</th><th>Product</th><th>Color/Texture</th><th>Quantity</th><th>Price</th></tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
     </div>
-    <div class="footer">This is an automated email from your Furnishing Catalogue System</div>
+    <div class="footer">
+      This is an automated email from your Furnishing Catalogue System
+    </div>
   </div>
 </body>
 </html>`;
@@ -82,10 +122,24 @@ class EmailService {
       text: this.getPlainTextVersion(enquiryData),
     };
 
-    const result = await this.transporter.sendMail(mailOptions);
-    return { success: true, messageId: result.messageId };
+    try {
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log("📩 Email sent successfully:", result.messageId);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error("❌ Email sending failed:", error.message);
+      if (error.code === "ETIMEDOUT") {
+        console.error(
+          "⚠️ Timeout occurred — your network or host may be blocking outgoing SMTP connections."
+        );
+      }
+      throw error;
+    }
   }
 
+  // ---------------------------------------------------
+  // ✅ Fallback plain text version
+  // ---------------------------------------------------
   getPlainTextVersion({
     user_name,
     user_phone,
@@ -114,21 +168,11 @@ Address: ${user_address || "Not provided"}
 Enquiry ID: ${enquiry_id}
 Date: ${new Date().toLocaleString()}
 
-Products Enquired:${itemsList}
+Products Enquired:
+${itemsList}
 
 ---
 This is an automated email from your Furnishing Catalogue System`;
-  }
-
-  async testConnection() {
-    try {
-      await this.transporter.verify();
-      console.log("Email service is ready");
-      return true;
-    } catch (error) {
-      console.error("Email service error:", error);
-      return false;
-    }
   }
 }
 
