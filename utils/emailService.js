@@ -75,7 +75,7 @@ class EmailService {
     const html = `<html>...same as your previous template...</html>`; // Keep your template here
 
     const mailOptions = {
-      from: `"${process.env.BUSINESS_NAME || "Furnishing Store"}" <${process.env.EMAIL_USER}>`,
+      from: `sometimesuse4912@gmail.com`,
       to: process.env.OWNER_EMAIL || process.env.EMAIL_USER,
       subject: `New Enquiry from ${user_name} – ${enquiry_id}`,
       html,
