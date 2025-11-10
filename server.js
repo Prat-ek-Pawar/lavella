@@ -45,7 +45,6 @@ app.use((req, res, next) => {
   res.header('Vary', 'Origin'); // cache correctness
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  // echo requested headers or allow common ones
   res.header(
     'Access-Control-Allow-Headers',
     req.headers['access-control-request-headers'] || 'Authorization, Content-Type, X-Requested-With, Accept'
