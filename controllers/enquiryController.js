@@ -38,6 +38,7 @@ const enquiryController = {
       // Background email
       (async () => {
         try {
+          console.log('Sending enquiry email in background for enquiry ID:', enquiry._id);
           const emailResult = await emailService.sendEnquiryEmail({
             user_name,
             user_phone,
@@ -49,6 +50,7 @@ const enquiryController = {
 
           if (emailResult.success) {
             enquiry.email_sent = true;
+            console.log('Enquiry email saved in mongo db');
             await enquiry.save();
           }
         } catch (mailErr) {
