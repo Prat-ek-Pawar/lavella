@@ -36,27 +36,30 @@ const enquiryController = {
       res.json({ success: true, message: 'Enquiry sent successfully', enquiry_id: enquiry._id });
 
       // Background email
-      (async () => {
-        try {
-          console.log('Sending enquiry email in background for enquiry ID:', enquiry._id);
-          const emailResult = await emailService.sendEnquiryEmail({
-            user_name,
-            user_phone,
-            user_email,
-            user_address,
-            items: enquiry.items,
-            enquiry_id: enquiry._id
-          });
+      // Background email
+(async () => {
+  try {
+    console.log('Sending enquiry email in background for enquiry ID:', enquiry._id);
+    const emailResult = await emailService.sendEnquiryEmail({
+      user_name,
+      user_phone,
+      user_email,
+      user_address,
+      items: enquiry.items,
+      enquiry_id: enquiry._id
+    });
 
-          if (emailResult.success) {
-            enquiry.email_sent = true;
-            console.log('Enquiry email saved in mongo db');
-            await enquiry.save();
-          }
-        } catch (mailErr) {
-          console.error('Background email error:', mailErr.message);
-        }
-      })();
+    if (emailResult.success) {
+      enquiry.email_sent = true;
+      console.log('Enquiry email saved in mongo db');
+      await enquiry.save();
+    } else {
+      console.error('Email rejected by provider:', emailResult.error);
+    }
+  } catch (mailErr) {
+    console.error('Background email error:', mailErr.message);
+  }
+})().catch(console.error);   // ← never let an unhandled rejection disappear
 
     } catch (err) {
       console.error('Enquiry error:', err);

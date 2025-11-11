@@ -19,7 +19,7 @@ async function sendEnquiryEmail(data) {
   try {
     const { user_name, user_email, user_phone, user_address, items = [], enquiry_id } = data;
     console.log(`user name ${user_name}, user email ${user_email}, user phone ${user_phone}, enquiry id ${enquiry_id} recieved in sendEnquiryEmail`);
-    conole.log('Items:', items);
+    console.log('Items:', items);
     console.log(` enviroment vaiables ${process.env.BUSINESS_NAME}, from : ${process.env.EMAIL_USER}, to : ${process.env.ADMIN_EMAIL}`);
     // Build HTML table for items
     const itemsTable = `
