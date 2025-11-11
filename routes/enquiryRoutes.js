@@ -5,8 +5,8 @@ const authMiddleware = require('../middleware/authMiddleware');
 const { enquiryLimiter } = require('../middleware/rateLimitMiddleware');
 
 // Public routes
-router.post('/', enquiryLimiter, enquiryController.sendEnquiryEmail);
-
+router.post('/', enquiryController.sendEnquiryEmail);
+router.get('/', (req,res) => { res.send('Enquiry route is working')});
 // Admin routes (protected)
 router.get('/all', authMiddleware, enquiryController.getAllEnquiries);
 router.put('/:id/status', authMiddleware, enquiryController.updateEnquiryStatus);
