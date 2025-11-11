@@ -1,15 +1,13 @@
-// controllers/enquiryController.js
 const Enquiry = require('../models/Enquiry');
 const mongoose = require('mongoose');
-const emailService = require('../utils/emailService');   // ← our service
+const emailService = require('../utils/emailService');
 
 const enquiryController = {
-  // PUBLIC – create enquiry + background email
   sendEnquiryEmail: async (req, res) => {
     try {
       const { user_name, user_phone, user_email, user_address, items } = req.body;
 
-      // --- basic validation ---
+      // Validation
       if (!user_name || !user_phone) {
         return res.status(400).json({ success: false, message: 'Name and phone are required' });
       }
@@ -22,7 +20,7 @@ const enquiryController = {
         }
       }
 
-      // --- save enquiry ---
+      // Save enquiry
       const enquiry = new Enquiry({
         user_name,
         user_phone,
@@ -35,33 +33,35 @@ const enquiryController = {
       });
       await enquiry.save();
 
-      // --- respond instantly ---
       res.json({ success: true, message: 'Enquiry sent successfully', enquiry_id: enquiry._id });
 
-      // --- background email ---
+      // Background email
       (async () => {
         try {
-          await emailService.sendEnquiryEmail({
+          const emailResult = await emailService.sendEnquiryEmail({
             user_name,
             user_phone,
             user_email,
             user_address,
-            items: enquiry.items,   // saved items (with real ObjectIds if valid)
+            items: enquiry.items,
             enquiry_id: enquiry._id
           });
-          enquiry.email_sent = true;
-          await enquiry.save();
+
+          if (emailResult.success) {
+            enquiry.email_sent = true;
+            await enquiry.save();
+          }
         } catch (mailErr) {
-          console.error('Background mail error:', mailErr.message);
+          console.error('Background email error:', mailErr.message);
         }
       })();
+
     } catch (err) {
       console.error('Enquiry error:', err);
       res.status(500).json({ success: false, message: 'Error sending enquiry. Please try again.' });
     }
   },
 
-  // --- admin endpoints (unchanged) ---
   getAllEnquiries: async (req, res) => {
     try {
       const enquiries = await Enquiry.find().sort('-createdAt').populate('items.product_id', 'title category');
