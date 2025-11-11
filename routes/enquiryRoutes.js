@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const enquiryController = require('../controllers/enquiryController');
 const authMiddleware = require('../middleware/authMiddleware');
-const { enquiryLimiter } = require('../middleware/rateLimitMiddleware');
 
 // Public routes
 router.post('/', enquiryController.sendEnquiryEmail);

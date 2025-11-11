@@ -62,7 +62,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(compressionMiddleware);
 
 // --- Rate limit (keep as-is for /api/*) ---
-app.use('/api/', apiLimiter);
+
 app.set('etag', false);
 // --- Static (uploads) ---
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
