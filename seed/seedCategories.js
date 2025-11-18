@@ -27,39 +27,206 @@ function log(...args) { if (VERBOSE) console.log(...args); }
 
 // ---- Exact taxonomy (order preserved) ----
 const TAXONOMY = [
-  { name: 'Curtain', subcategories: ['Ring Curtain', 'American Pleat Curtains', 'Elizabeth Curtain'], display_order: 1 },
-  { name: 'Window Blinds', subcategories: ['Venetian Blinds'], display_order: 2 },
-  { name: 'Wallpaper', subcategories: ['Regular', 'Roll Form Wallpaper'], display_order: 3 },
-  { name: 'Mattresses', subcategories: ['Innerspring Mattress'], display_order: 4 },
+  { name: 'Curtain', subcategories: ['Ring Curtain', 'American Pleat Curtains'], display_order: 1 },
+  { name: 'Window Blinds', subcategories: ['Venetian Blinds',"Roller Blinds",'Roman Blinds',], display_order: 2 },
+  { name: 'Wallpaper', subcategories: ['Regular', 'Roll Form Wallpaper','Textured'], display_order: 3 },
+  {
+  name: 'Mattresses',
+  subcategories: [
+    'Single Bed Mattress',
+    'Double Bed Mattress',
+    'Queen Bed Mattress',
+    'King Bed Mattress',
+    'Foam Mattress',
+    'Coir Mattress',
+    'Latex Mattress',
+    'Spring Mattress',
+    'Orthopedic Mattress',
+    'Memory Foam Mattress',
+    'Anti Sagging Mattress',
+    'MSI Technology Mattress',
+    'Back Support Mattress',
+    'Innerspring Mattress',
+    'Spine Comfort Mattress',
+
+  ],
+  display_order: 4
+}
+,
   { name: 'sofas', subcategories: [], display_order: 5 },
-  { name: 'bedbacks', subcategories: [], display_order: 6 },
-  { name: 'Flooring', subcategories: ['Wooden Flooring', 'Vinyl Flooring'], display_order: 7 },
-  { name: 'Bedsheet', subcategories: ['cotton bedsheets'], display_order: 8 },
-  { name: 'Towel', subcategories: ['Bath Towels'], display_order: 9 },
-  { name: 'Comforter', subcategories: ['cotton comforter'], display_order: 10 },
+  {
+  name: 'bedbacks',
+  subcategories: [
+    'Upholstered Bed Back',
+    'Wooden Bed Back',
+    'Tufted Bed Back',
+    'Panel Bed Back',
+    'Wingback Bed Back',
+    'Leather / Leatherette Bed Back',
+    'Fabric Bed Back'
+  ],
+  display_order: 6
+}
+,
+  { name: 'Flooring', subcategories: ['Wooden Flooring', 'Vinyl Flooring'], display_order: 7 },{
+  name: 'Bedsheet',
+  subcategories: [
+    'Cotton Bedsheets',
+    'Linen',
+    'Printed',
+    'Embroidered'
+  ],
+  display_order: 8
+},
+
+  {
+  name: 'Towel',
+  subcategories: [
+    'Bath Towels',
+    'Hand Towels',
+    'Face Towels',
+    'Bath Sheets',
+    'Gym Towels',
+    'Kitchen Towels',
+    'Beach Towels',
+    'Hair Towels',
+    'Guest Towels',
+    'Microfiber Towels',
+    'Baby Towels'
+  ],
+  display_order: 9
+}
+,
+ {
+  name: 'Comforters',
+  subcategories: [
+    'Cotton Comforter',
+    'Microfibre Comforter',
+    'Down Alternative Comforter', 
+    'Reversible Comforter',
+    'Printed Comforter',
+    'Solid Comforter',
+    'Single Size Comforter',
+    'Double Size Comforter',
+    'King Size Comforter',
+    'Mild Winter Comforter',
+    'All Season Comforter'
+  ],
+  display_order: 10
+}
+,
   { name: 'Mattress Protector', subcategories: ['Waterproof Mattress Protector'], display_order: 11 },
   { name: 'Doormat', subcategories: ['rubber door mat'], display_order: 12 },
-  { name: 'Bedrunner', subcategories: ['cotton bedrunner'], display_order: 13 },
-  { name: 'Pillow', subcategories: ['Memory Foam Pillow'], display_order: 14 }
+  {
+  name: 'Bedrunner',
+  subcategories: [
+    'cotton bedrunner',
+    'polyester bedrunner',
+    'acrylic bedrunner',
+    'polypropylene bedrunner'
+  ],
+  display_order: 13
+}
+,{
+  name: 'Pillow',
+  subcategories: [
+    'Memory Foam Pillow',
+    'Hosta Pillow',
+    'Chimera Pillow',
+    'Petalz Pillow',
+    'Sleepzz Pillow'
+  ],
+  display_order: 14
+}
+,
+  { name: 'Chik Blinds', subcategories: ['Bamboo Blinds','Wooden Blinds'], display_order: 15 },
+  {
+  name: 'Blankets',
+  subcategories: [
+    'Microfiber Blanket',
+    'Polyester Blanket',
+    'Double Layered Blanket',
+    'Sherpa Blanket',
+    'Flannel Blanket'
+  ],
+  display_order: 16
+},
+{
+  name: 'PVL Table Covers',
+  subcategories: [
+    'Textured',
+    'Matte Finish',
+    'Waterproof & Oil-Proof',
+    'Anti-Slip PVC',
+    'Heat-Resistant'
+  ],
+  display_order: 17
+},
+{
+  name: 'Cushions',
+  subcategories: [
+    'Throw Cushions',
+    'Sofa Cushions',
+    'Chair Cushions',
+    'Floor Cushions',
+    'Printed Cushions',
+    'Solid Cushions',
+    'Velvet Cushions',
+    'Cotton Cushions',
+    'Microfiber Cushions',
+    'Decorative Cushions'
+  ],
+  display_order: 18
+}
+,{
+  name: 'Rugs',
+  subcategories: [
+    'Plains',
+    'Abstract',
+    'Classical',
+    'Floral',
+    'Stripes',
+    'Ombre',
+    'Geometric'
+  ],
+  display_order: 19
+},{
+  name: 'Yoga Mats',
+  subcategories: [
+    'PVC Yoga Mat',
+    'TPE Yoga Mat',
+    'Rubber Yoga Mat',
+    'Cork Yoga Mat'
+  ],
+  display_order: 20
+}
 ];
 
 // ---- Name -> exact source filename in ../uploads/temp ----
 const FILENAME_MAP = {
-  'Curtain': 'curtain.jpeg',
-  'Window Blinds': 'Window Blinds.jpeg',
-  'Wallpaper': 'Wallpaper.jpeg',
-  'Mattresses': 'Mattresses.jpeg',
-  'sofas': 'sofas.jpeg',
-  'bedbacks': 'bedbacks.jpeg',
-  'Flooring': 'Flooring.jpeg',
-  'Bedsheet': 'Bedsheet.jpeg',
-  'Towel': 'Towel.jpeg',
-  'Comforter': 'Comforter.jpeg',
-  'Mattress Protector': 'Mattress Protector.jpeg',
-  'Doormat': 'Doormat.jpeg',
-  'Bedrunner': 'Bedrunner.jpeg',
-  'Pillow': 'Pillow.jpeg'
+  'Curtain': 'cutain.jpg',
+  'Window Blinds': 'window_blinds.jpg',
+  'Wallpaper': 'wallpaper.jpg',
+  'Mattresses': 'mattress.jpg',
+  'sofas': 'sofas.jpg',
+  'bedbacks': 'bedbacks.jpg',
+  'Flooring': 'flooring.jpg',
+  'Bedsheet': 'bedsheet.jpg',
+  'Towel': 'towels.jpg',
+  'Comforters': 'comforters.jpg',
+  'Mattress Protector': 'matress_proctector.jpg',
+  'Doormat': 'doormat.jpg',
+  'Bedrunner': 'bedrunners.jpg',
+  'Pillow': 'pillow.jpg',
+  'Chik Blinds': 'chick_blinds.jpg',
+  'Blankets': 'blankets.jpg',
+  'PVL Table Covers': 'table_cover.jpg',
+  'Cushions': 'cusions.jpg',
+  'Rugs': 'rugs.jpg',
+  'Yoga Mats': 'yoga_mat.jpg'
 };
+
+
 
 const INPUT_DIR = path.resolve(__dirname, '../uploads/temp');
 const TMP_OUT_DIR = path.join(INPUT_DIR, '_processed');

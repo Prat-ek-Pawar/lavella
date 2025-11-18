@@ -27,9 +27,7 @@ async function sendEnquiryEmail(data) {
         <thead>
           <tr style="background-color: #f2f2f2;">
             <th>Title</th>
-            <th>Color/Texture</th>
             <th>Qty</th>
-            <th>Price</th>
           </tr>
         </thead>
         <tbody>
@@ -37,8 +35,6 @@ async function sendEnquiryEmail(data) {
             <tr>
               <td>${i.title}</td>
               <td>${i.selected_color_texture || '-'}</td>
-              <td>${i.quantity}</td>
-              <td>₹${i.price_at_time || 0}</td>
             </tr>
           `).join('')}
         </tbody>

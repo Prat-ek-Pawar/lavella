@@ -62,7 +62,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(compressionMiddleware);
 
 // --- Rate limit (keep as-is for /api/*) ---
-
+app.use('/api/', apiLimiter);
 app.set('etag', false);
 // --- Static (uploads) ---
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -113,7 +113,7 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 const server = app.listen(PORT, HOST, () => {
   const env = process.env.NODE_ENV || 'development';
-  console.log(`Server running in ${env} at http://127.0.0.1:${PORT} latest commit`);
+  console.log(`Server running in ${env} at http://127.0.0.1:${PORT} latest commit `);
   console.log(`Health:     http://127.0.0.1:${PORT}/api/health`);
   console.log(`Categories: http://127.0.0.1:${PORT}/api/categories`);
 });
