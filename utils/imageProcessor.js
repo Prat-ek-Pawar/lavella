@@ -5,9 +5,9 @@ const path = require('path');
 class ImageProcessor {
   constructor() {
     this.defaultOptions = {
-      maxWidth: 1200,
-      maxHeight: 1200,
-      quality: 80,
+      maxWidth: null,       // ⬅ no resize by default
+      maxHeight: null,
+      quality: 100,         // ⬅ max quality (visually lossless)
       format: 'jpeg'
     };
   }
@@ -16,18 +16,24 @@ class ImageProcessor {
     try {
       const config = { ...this.defaultOptions, ...options };
 
-      await sharp(inputPath)
-        .resize(config.maxWidth, config.maxHeight, {
+      let pipeline = sharp(inputPath);
+
+      // ⬅ Only resize if user explicitly provides dimensions
+      if (config.maxWidth && config.maxHeight) {
+        pipeline = pipeline.resize(config.maxWidth, config.maxHeight, {
           fit: 'inside',
           withoutEnlargement: true
-        })
-        .jpeg({ 
-          quality: config.quality,
-          progressive: true 
-        })
-        .toFile(outputPath);
+        });
+      }
 
-      // Get file sizes for comparison
+      // High-quality JPEG output
+      pipeline = pipeline.jpeg({
+        quality: config.quality,
+        progressive: true
+      });
+
+      await pipeline.toFile(outputPath);
+
       const originalSize = fs.statSync(inputPath).size;
       const compressedSize = fs.statSync(outputPath).size;
       const compressionRatio = ((1 - compressedSize / originalSize) * 100).toFixed(2);
@@ -106,7 +112,7 @@ class ImageProcessor {
   async batchCompress(inputDir, outputDir, options = {}) {
     try {
       const files = fs.readdirSync(inputDir);
-      const imageFiles = files.filter(file => 
+      const imageFiles = files.filter(file =>
         /\.(jpg|jpeg|png|gif|webp)$/i.test(file)
       );
 
@@ -138,7 +144,7 @@ class ImageProcessor {
   cleanupTempFiles(directory) {
     try {
       const files = fs.readdirSync(directory);
-      
+
       files.forEach(file => {
         const filePath = path.join(directory, file);
         const stats = fs.statSync(filePath);
@@ -146,7 +152,6 @@ class ImageProcessor {
         const fileAge = now - stats.mtimeMs;
         const maxAge = 60 * 60 * 1000; // 1 hour
 
-        // Delete files older than 1 hour
         if (fileAge > maxAge) {
           fs.unlinkSync(filePath);
           console.log(`Deleted old temp file: ${file}`);

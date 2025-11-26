@@ -1,6 +1,6 @@
 // controllers/uploadController.js
 const multer = require('multer');
-const sharp = require('sharp');
+const sharp = require('sharp'); // still imported if you want later, but unused now
 const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
@@ -20,7 +20,8 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/temp'),
   filename: (req, file, cb) => {
     const base = path.parse(file.originalname).name.replace(/\s+/g, '_');
-    cb(null, `${Date.now()}-${Math.round(Math.random()*1e9)}-${base}.jpg`); // we will output jpeg
+    // local temp file name, extension doesn't really matter now
+    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}-${base}`);
   }
 });
 
@@ -29,7 +30,9 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
     const allowed = /jpeg|jpg|png|gif|webp/;
-    const ok = allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype);
+    const ok =
+      allowed.test(path.extname(file.originalname).toLowerCase()) &&
+      allowed.test(file.mimetype);
     return ok ? cb(null, true) : cb(new Error('Only image files are allowed'));
   }
 });
@@ -38,46 +41,56 @@ const uploadController = {
   // SINGLE
   uploadImage: async (req, res) => {
     try {
-      if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'No file uploaded' });
+      }
 
       const tempIn = req.file.path;
-      const tempOut = path.join('uploads/temp', `compressed-${req.file.filename}`);
 
-      // Compress to JPEG
-      await sharp(tempIn)
-        .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 80 })
-        .toFile(tempOut);
+      // 🔥 No compression, no resizing: upload original bytes
+      const fileContent = fs.readFileSync(tempIn);
 
-      const fileContent = fs.readFileSync(tempOut);
-
-      const safeOriginal = path.parse(req.file.originalname).name.replace(/\s+/g, '_');
-      const key = `products/${Date.now()}-${safeOriginal}.jpg`;
+      const safeOriginal = path
+        .parse(req.file.originalname)
+        .name.replace(/\s+/g, '_');
+      const ext =
+        path.extname(req.file.originalname).toLowerCase() || '.jpg';
+      const key = `products/${Date.now()}-${safeOriginal}${ext}`;
 
       const s3Params = {
         Bucket: process.env.S3_BUCKET_NAME,
         Key: key,
         Body: fileContent,
-        ContentType: 'image/jpeg',
-        // ❌ Do NOT include ACL when bucket has "bucket owner enforced"
+        ContentType: req.file.mimetype, // keep original mime type
         CacheControl: 'public, max-age=31536000, immutable'
       };
 
       const s3Result = await s3.upload(s3Params).promise();
 
-      // Cleanup
+      // Cleanup temp file
       fs.existsSync(tempIn) && fs.unlinkSync(tempIn);
-      fs.existsSync(tempOut) && fs.unlinkSync(tempOut);
 
-      // If serving via CloudFront, map the URL (optional)
       const cdn = process.env.CLOUDFRONT_DOMAIN; // e.g. dxxx.cloudfront.net
       const publicUrl = cdn ? `https://${cdn}/${key}` : s3Result.Location;
 
-      res.json({ success: true, image_url: publicUrl, key, message: 'Image uploaded successfully' });
+      res.json({
+        success: true,
+        image_url: publicUrl,
+        key,
+        message: 'Image uploaded successfully'
+      });
     } catch (error) {
       // Cleanup best-effort
-      try { req.file?.path && fs.existsSync(req.file.path) && fs.unlinkSync(req.file.path); } catch {}
-      return res.status(500).json({ success: false, message: error.message });
+      try {
+        req.file?.path &&
+          fs.existsSync(req.file.path) &&
+          fs.unlinkSync(req.file.path);
+      } catch {}
+      return res
+        .status(500)
+        .json({ success: false, message: error.message });
     }
   },
 
@@ -85,7 +98,9 @@ const uploadController = {
   uploadMultipleImages: async (req, res) => {
     try {
       if (!req.files || !req.files.length) {
-        return res.status(400).json({ success: false, message: 'No files uploaded' });
+        return res
+          .status(400)
+          .json({ success: false, message: 'No files uploaded' });
       }
 
       const uploadedUrls = [];
@@ -93,42 +108,48 @@ const uploadController = {
 
       for (const file of req.files) {
         const tempIn = file.path;
-        const tempOut = path.join('uploads/temp', `compressed-${file.filename}`);
 
-        await sharp(tempIn)
-          .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
-          .jpeg({ quality: 80 })
-          .toFile(tempOut);
+        // 🔥 No compression, no resizing here also
+        const fileContent = fs.readFileSync(tempIn);
 
-        const fileContent = fs.readFileSync(tempOut);
-
-        const safeOriginal = path.parse(file.originalname).name.replace(/\s+/g, '_');
-        const key = `products/${Date.now()}-${safeOriginal}.jpg`;
+        const safeOriginal = path
+          .parse(file.originalname)
+          .name.replace(/\s+/g, '_');
+        const ext =
+          path.extname(file.originalname).toLowerCase() || '.jpg';
+        const key = `products/${Date.now()}-${safeOriginal}${ext}`;
 
         const s3Params = {
           Bucket: process.env.S3_BUCKET_NAME,
           Key: key,
           Body: fileContent,
-          ContentType: 'image/jpeg',
+          ContentType: file.mimetype,
           CacheControl: 'public, max-age=31536000, immutable'
         };
 
         const s3Result = await s3.upload(s3Params).promise();
 
-        // Cleanup
+        // Cleanup temp file
         fs.existsSync(tempIn) && fs.unlinkSync(tempIn);
-        fs.existsSync(tempOut) && fs.unlinkSync(tempOut);
 
         uploadedUrls.push(cdn ? `https://${cdn}/${key}` : s3Result.Location);
       }
 
-      res.json({ success: true, image_urls: uploadedUrls, message: 'Images uploaded successfully' });
+      res.json({
+        success: true,
+        image_urls: uploadedUrls,
+        message: 'Images uploaded successfully'
+      });
     } catch (error) {
       // Cleanup best-effort
       try {
-        req.files?.forEach(f => f?.path && fs.existsSync(f.path) && fs.unlinkSync(f.path));
+        req.files?.forEach(f => {
+          f?.path && fs.existsSync(f.path) && fs.unlinkSync(f.path);
+        });
       } catch {}
-      return res.status(500).json({ success: false, message: error.message });
+      return res
+        .status(500)
+        .json({ success: false, message: error.message });
     }
   }
 };
