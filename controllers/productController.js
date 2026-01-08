@@ -1,10 +1,25 @@
-const Product = require('../models/Product');
+const Product = require("../models/Product");
+
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(/[^\w-]+/g, "") // Remove all non-word chars
+    .replace(/--+/g, "-"); // Replace multiple - with single -
+};
 
 const productController = {
   // Create new product - Admin only
   createProduct: async (req, res) => {
     try {
-      const product = new Product(req.body);
+      const productData = { ...req.body };
+      if (productData.title && !productData.slug) {
+        productData.slug =
+          slugify(productData.title) + "-" + Date.now().toString().slice(-4);
+      }
+      const product = new Product(productData);
       await product.save();
       res.status(201).json({ success: true, data: product });
     } catch (error) {
@@ -25,15 +40,27 @@ const productController = {
   // Get product by ID - Public
   getProductById: async (req, res) => {
     try {
-      const product = await Product.findOne({ 
-        _id: req.params.id, 
-        is_active: true 
-      });
-      
-      if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
+      const { id } = req.params;
+      let query;
+
+      // Check if id is a valid MongoDB ObjectId
+      if (id.match(/^[0-9a-fA-F]{24}$/)) {
+        query = { _id: id };
+      } else {
+        query = { slug: id };
       }
-      
+
+      const product = await Product.findOne({
+        ...query,
+        is_active: true,
+      });
+
+      if (!product) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Product not found" });
+      }
+
       res.json({ success: true, data: product });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -43,9 +70,9 @@ const productController = {
   // Get featured products - Public
   getFeaturedProducts: async (req, res) => {
     try {
-      const products = await Product.find({ 
-        featured: true, 
-        is_active: true 
+      const products = await Product.find({
+        featured: true,
+        is_active: true,
       });
       res.json({ success: true, data: products });
     } catch (error) {
@@ -65,7 +92,7 @@ const productController = {
         search,
         page = 1,
         limit = 12,
-        sort = 'createdAt'
+        sort = "createdAt",
       } = req.query;
 
       // Build filter query
@@ -80,15 +107,12 @@ const productController = {
       }
 
       if (materials) {
-        const materialArray = materials.split(',');
+        const materialArray = materials.split(",");
         filter.material_used = { $in: materialArray };
       }
 
       if (minPrice || maxPrice) {
-        filter.$or = [
-          { discounted_price: {} },
-          { original_price: {} }
-        ];
+        filter.$or = [{ discounted_price: {} }, { original_price: {} }];
 
         if (minPrice) {
           filter.$or[0].discounted_price.$gte = Number(minPrice);
@@ -103,10 +127,10 @@ const productController = {
 
       if (search) {
         filter.$or = [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { category: { $regex: search, $options: 'i' } },
-          { subcategory: { $regex: search, $options: 'i' } }
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+          { subcategory: { $regex: search, $options: "i" } },
         ];
       }
 
@@ -126,8 +150,8 @@ const productController = {
         pagination: {
           total,
           page: Number(page),
-          pages: Math.ceil(total / limit)
-        }
+          pages: Math.ceil(total / limit),
+        },
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -137,14 +161,22 @@ const productController = {
   // Update product - Admin only
   updateProduct: async (req, res) => {
     try {
+      const updateData = { ...req.body };
+      if (updateData.title && !updateData.slug) {
+        updateData.slug =
+          slugify(updateData.title) + "-" + Date.now().toString().slice(-4);
+      }
+
       const product = await Product.findByIdAndUpdate(
         req.params.id,
-        req.body,
+        updateData,
         { new: true, runValidators: true }
       );
 
       if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Product not found" });
       }
 
       res.json({ success: true, data: product });
@@ -163,14 +195,16 @@ const productController = {
       );
 
       if (!product) {
-        return res.status(404).json({ success: false, message: 'Product not found' });
+        return res
+          .status(404)
+          .json({ success: false, message: "Product not found" });
       }
 
-      res.json({ success: true, message: 'Product deleted successfully' });
+      res.json({ success: true, message: "Product deleted successfully" });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
-  }
+  },
 };
 
 module.exports = productController;
