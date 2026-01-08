@@ -43,11 +43,11 @@
 
       /* Unified Transitions */
       .page-view {
-        display: none;
+        display: none !important;
         animation: fadeIn 0.4s ease-out;
       }
       .page-view.active {
-        display: block;
+        display: block !important;
       }
       @keyframes fadeIn {
         from {
@@ -449,7 +449,7 @@
   </head>
   <body>
     <!-- 1. LOGIN VIEW -->
-    <div id="loginView" class="page-view active">
+    <div id="loginView" class="page-view">
       <div class="login-card">
         <h1>LAVELLA</h1>
         <p>Administrative Access Only</p>
