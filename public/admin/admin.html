@@ -748,7 +748,17 @@
         document
           .querySelectorAll(".page-view")
           .forEach((v) => v.classList.remove("active"));
-        document.getElementById(view + "View").classList.add("active");
+
+        const viewEl = document.getElementById(
+          view + (view === "login" ? "View" : "Layout")
+        );
+        if (viewEl) {
+          viewEl.classList.add("active");
+        } else {
+          // Fallback if ID mismatch
+          document.getElementById(view + "View")?.classList.add("active");
+        }
+
         if (view === "admin") {
           showSection("products");
           loadStats();
