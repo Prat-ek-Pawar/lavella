@@ -500,9 +500,6 @@
         <button class="nav-link active" onclick="showSection('products')">
           <i class="fas fa-box"></i> <span>Products</span>
         </button>
-        <button class="nav-link" onclick="showSection('enquiries')">
-          <i class="fas fa-envelope"></i> <span>Enquiries</span>
-        </button>
         <button class="nav-link" onclick="showSection('categories')">
           <i class="fas fa-list"></i> <span>Categories</span>
         </button>
@@ -714,34 +711,6 @@
           </form>
         </section>
 
-        <!-- ENQUIRIES SECTION -->
-        <section id="enquiriesSection" class="section-view">
-          <div class="header">
-            <h1>Customer Interrogations</h1>
-            <button class="btn btn-secondary" onclick="loadEnquiries()">
-              <i class="fas fa-sync"></i> Refresh
-            </button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Customer</th>
-                  <th>Product Interest</th>
-                  <th>Contact Info</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="enquiryTableBody"></tbody>
-            </table>
-            <div id="enquiryLoader" class="loader">
-              <i class="fas fa-spinner fa-spin"></i> Loading Enquiries...
-            </div>
-          </div>
-        </section>
-
         <!-- CATEGORIES SECTION - Placeholder -->
         <section id="categoriesSection" class="section-view">
           <div class="header"><h1>Managed Taxonomies</h1></div>
@@ -754,67 +723,6 @@
           </div>
         </section>
       </main>
-    </div>
-
-    <!-- ENQUIRY MODAL -->
-    <div
-      id="enqModal"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        backdrop-filter: blur(8px);
-        z-index: 2000;
-        align-items: center;
-        justify-content: center;
-      "
-    >
-      <div
-        class="form-card"
-        style="width: 100%; max-width: 600px; animation: slideUp 0.3s ease"
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-          "
-        >
-          <h2>Enquiry Details</h2>
-          <button
-            onclick="closeModal()"
-            style="
-              background: none;
-              border: none;
-              color: white;
-              font-size: 1.5rem;
-              cursor: pointer;
-            "
-          >
-            &times;
-          </button>
-        </div>
-        <div id="enqContent"></div>
-        <div style="margin-top: 2.5rem; display: flex; gap: 1rem">
-          <button
-            class="btn btn-primary"
-            onclick="updateEnqStatus('responded')"
-          >
-            Mark Responded
-          </button>
-          <button
-            class="btn btn-secondary"
-            onclick="updateEnqStatus('pending')"
-          >
-            Set Pending
-          </button>
-        </div>
-      </div>
     </div>
 
     <div id="toast" class="toast"></div>
@@ -862,7 +770,6 @@
         if (navBtn) navBtn.classList.add("active");
 
         if (section === "products") loadProducts();
-        if (section === "enquiries") loadEnquiries();
       }
 
       // --- AUTH ---
@@ -1118,121 +1025,6 @@
       function removeImg(i) {
         currentImages.splice(i, 1);
         renderImgPreviews();
-      }
-
-      // --- ENQUIRIES ---
-      async function loadEnquiries() {
-        const loader = document.getElementById("enquiryLoader");
-        const body = document.getElementById("enquiryTableBody");
-        loader.style.display = "block";
-        body.innerHTML = "";
-
-        try {
-          const res = await fetch(`${API_URL}/enquiry/all`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          if (data.success) {
-            renderEnquiries(data.data);
-          }
-        } catch (e) {
-          notify("Session expired or error loading enquiries");
-        } finally {
-          loader.style.display = "none";
-        }
-      }
-
-      function renderEnquiries(enqs) {
-        const body = document.getElementById("enquiryTableBody");
-        body.innerHTML = enqs
-          .map(
-            (e) => `
-                <tr>
-                    <td>${new Date(e.createdAt).toLocaleDateString()}</td>
-                    <td><strong>${e.name}</strong></td>
-                    <td style="font-size: 0.85rem">${
-                      e.product_title || "General Enquiry"
-                    }</td>
-                    <td>
-                        <div style="font-size: 0.85rem">${e.email}</div>
-                        <div style="font-size: 0.8rem; color: var(--text-dim)">${
-                          e.phone || ""
-                        }</div>
-                    </td>
-                    <td><span class="status-pill ${
-                      e.status === "responded"
-                        ? "status-active"
-                        : "status-warning"
-                    }">${e.status || "pending"}</span></td>
-                    <td><button class="btn btn-secondary" onclick="viewEnq('${
-                      e._id
-                    }')">Details</button></td>
-                </tr>
-            `
-          )
-          .join("");
-      }
-
-      let currentEnqId = null;
-      async function viewEnq(id) {
-        currentEnqId = id;
-        try {
-          const res = await fetch(`${API_URL}/enquiry/all`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
-          const e = data.data.find((enq) => enq._id === id);
-          if (e) {
-            document.getElementById("enqContent").innerHTML = `
-                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div><label>Customer Name</label><p>${
-                              e.name
-                            }</p></div>
-                            <div><label>Contact Email</label><p>${
-                              e.email
-                            }</p></div>
-                            <div><label>Phone Number</label><p>${
-                              e.phone || "N/A"
-                            }</p></div>
-                            <div><label>Interest</label><p>${
-                              e.product_title || "General"
-                            }</p></div>
-                        </div>
-                        <div style="margin-top: 1.5rem">
-                            <label>Customer Message</label>
-                            <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; border: 1px solid var(--border)">${
-                              e.message
-                            }</div>
-                        </div>
-                    `;
-            document.getElementById("enqModal").style.display = "flex";
-          }
-        } catch (err) {}
-      }
-
-      async function updateEnqStatus(status) {
-        try {
-          const res = await fetch(`${API_URL}/enquiry/${currentEnqId}/status`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ status }),
-          });
-          const data = await res.json();
-          if (data.success) {
-            notify("Status updated");
-            closeModal();
-            loadEnquiries();
-          }
-        } catch (err) {
-          notify("Update failed");
-        }
-      }
-
-      function closeModal() {
-        document.getElementById("enqModal").style.display = "none";
       }
 
       // --- SUBMIT PRODUCT ---
