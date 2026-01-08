@@ -102,7 +102,7 @@
 
       /* Dashboard Layout */
       #adminLayout {
-        display: flex;
+        display: block; /* Changed from flex to block for fixed sidebar */
         min-height: 100vh;
       }
 
@@ -116,8 +116,20 @@
         border-right: 1px solid var(--border);
         overflow-y: auto;
         height: 100vh;
-        position: sticky;
+        position: fixed; /* Fixed position */
         top: 0;
+        left: 0;
+        z-index: 100;
+      }
+      /* ... existing styles ... */
+
+      /* Main Content Area */
+      .main-content {
+        margin-left: 260px; /* Offset for fixed sidebar */
+        padding: 2.5rem;
+        overflow-y: auto;
+        width: calc(100% - 260px);
+        min-height: 100vh;
       }
       .logo {
         font-size: 1.5rem;
@@ -166,17 +178,14 @@
       }
 
       /* Main Content Area */
-      .main-content {
-        flex-grow: 1;
-        padding: 2.5rem;
-        overflow-y: auto;
-        max-width: calc(100vw - 260px);
-      }
+      /* .main-content moved up to sidebar block for grouping */
+
       .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 2rem;
+        margin-top: 1rem; /* Added breathing room */
       }
       .header h1 {
         font-size: 1.8rem;
