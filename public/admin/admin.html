@@ -813,9 +813,26 @@
         }
       };
 
-      function checkAuth() {
-        // Minimal check, if token exists show admin
-        showView("admin");
+      async function checkAuth() {
+        if (!token) {
+          showView("login");
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_URL}/admin/verify`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            showView("admin");
+          } else {
+            logout();
+          }
+        } catch (err) {
+          // If server is down, but we have a token, we might still show admin
+          // but API calls will fail anyway. Safer to just show login if we can't verify.
+          showView("login");
+        }
       }
 
       function logout() {
