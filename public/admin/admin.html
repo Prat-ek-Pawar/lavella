@@ -820,7 +820,7 @@
     <div id="toast" class="toast"></div>
 
     <script>
-      const API_URL = "https://api.lavelladecor.com/api";
+      const API_URL = "/api";
       let currentImages = [];
       let categories = [];
       let token = localStorage.getItem("lavella_token");
@@ -869,8 +869,11 @@
       document.getElementById("loginForm").onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector("button");
+        const errDisplay = document.getElementById("loginError");
+
         btn.disabled = true;
         btn.textContent = "Authenticating...";
+        errDisplay.style.display = "none";
 
         try {
           const res = await fetch(`${API_URL}/admin/login`, {
@@ -881,7 +884,12 @@
               password: document.getElementById("loginPass").value,
             }),
           });
+
           const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data.message || "Invalid Login");
+          }
           if (data.success) {
             token = data.token;
             localStorage.setItem("lavella_token", token);
@@ -890,7 +898,8 @@
             showError(data.message || "Access Denied");
           }
         } catch (err) {
-          showError("Server Unreachable");
+          console.error("Login Error:", err);
+          showError("Login Error: " + err.message);
         } finally {
           btn.disabled = false;
           btn.textContent = "Login System";
