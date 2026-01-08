@@ -743,12 +743,8 @@
       </main>
     </div>
 
-    <div id="toast" class="toast"></div>
-
     <script>
-      // Auto-detect backend port if running on VS Code Live Server (port 5500)
-      const API_URL =
-        location.port === "5500" ? "http://localhost:5000/api" : "/api";
+      const API_URL = "https://api.lavelladecor.com/api";
 
       let currentImages = [];
       let categories = [];
