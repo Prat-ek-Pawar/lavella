@@ -728,7 +728,9 @@
     <div id="toast" class="toast"></div>
 
     <script>
-      const API_URL = "/api";
+      // Auto-detect backend port if running on VS Code Live Server (port 5500)
+      const API_URL =
+        location.port === "5500" ? "http://localhost:5000/api" : "/api";
       let currentImages = [];
       let categories = [];
       let token = localStorage.getItem("lavella_token");
@@ -791,6 +793,13 @@
               password: document.getElementById("loginPass").value,
             }),
           });
+
+          const contentType = res.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            const text = await res.text();
+            console.error("Non-JSON Error:", text);
+            throw new Error("Server error: Check if backend is running.");
+          }
 
           const data = await res.json();
 
