@@ -740,6 +740,7 @@
       // Auto-detect backend port if running on VS Code Live Server (port 5500)
       const API_URL =
         location.port === "5500" ? "http://localhost:5000/api" : "/api";
+
       let currentImages = [];
       let categories = [];
       let token = localStorage.getItem("lavella_token");
@@ -754,17 +755,19 @@
       });
 
       function showView(view) {
+        // Hide all page-level views
         document
           .querySelectorAll(".page-view")
           .forEach((v) => v.classList.remove("active"));
 
+        // Show specific view
         const viewEl = document.getElementById(
           view + (view === "login" ? "View" : "Layout")
         );
         if (viewEl) {
           viewEl.classList.add("active");
         } else {
-          // Fallback if ID mismatch
+          // Fallback
           document.getElementById(view + "View")?.classList.add("active");
         }
 
@@ -776,6 +779,7 @@
       }
 
       function showSection(section) {
+        // Hide all internal sections
         document
           .querySelectorAll(".section-view")
           .forEach((s) => s.classList.remove("active"));
@@ -783,10 +787,16 @@
           .querySelectorAll(".nav-link")
           .forEach((l) => l.classList.remove("active"));
 
-        document.getElementById(section + "Section").classList.add("active");
-        // Find nav button
+        // Show active section
+        const secEl = document.getElementById(section + "Section");
+        if (secEl) secEl.classList.add("active");
+
+        // Highlight Sidebar
         const navBtn = Array.from(document.querySelectorAll(".nav-link")).find(
-          (btn) => btn.getAttribute("onclick").includes(section)
+          (btn) => {
+            const attr = btn.getAttribute("onclick");
+            return attr && attr.includes(section);
+          }
         );
         if (navBtn) navBtn.classList.add("active");
 
@@ -804,6 +814,7 @@
         errDisplay.style.display = "none";
 
         try {
+          // Attempt Login
           const res = await fetch(`${API_URL}/admin/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -813,6 +824,7 @@
             }),
           });
 
+          // Check if response is JSON (guard against HTML error pages)
           const contentType = res.headers.get("content-type");
           if (!contentType || !contentType.includes("application/json")) {
             const text = await res.text();
@@ -825,6 +837,7 @@
           if (!res.ok) {
             throw new Error(data.message || "Invalid Login");
           }
+
           if (data.success) {
             token = data.token;
             localStorage.setItem("lavella_token", token);
@@ -834,7 +847,7 @@
           }
         } catch (err) {
           console.error("Login Error:", err);
-          showError("Login Error: " + err.message);
+          showError(err.message);
         } finally {
           btn.disabled = false;
           btn.textContent = "Login System";
@@ -857,8 +870,6 @@
             logout();
           }
         } catch (err) {
-          // If server is down, but we have a token, we might still show admin
-          // but API calls will fail anyway. Safer to just show login if we can't verify.
           showView("login");
         }
       }
@@ -879,8 +890,8 @@
       async function loadProducts() {
         const loader = document.getElementById("productLoader");
         const body = document.getElementById("productTableBody");
-        loader.style.display = "block";
-        body.innerHTML = "";
+        if (loader) loader.style.display = "block";
+        if (body) body.innerHTML = "";
 
         try {
           const res = await fetch(`${API_URL}/products`);
@@ -892,12 +903,13 @@
         } catch (e) {
           notify("Failed to load products");
         } finally {
-          loader.style.display = "none";
+          if (loader) loader.style.display = "none";
         }
       }
 
       function renderProducts(prods) {
         const body = document.getElementById("productTableBody");
+        if (!body) return;
         body.innerHTML = prods
           .map(
             (p) => `
@@ -1135,6 +1147,7 @@
         /* Placeholder for backend stats endpoint if exists */
       }
       function updateProductStats(prods) {
+        if (!prods) return;
         document.getElementById("statTotal").textContent = prods.length;
         document.getElementById("statActive").textContent = prods.filter(
           (p) => p.is_active
