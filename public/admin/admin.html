@@ -1147,6 +1147,35 @@
         }
       };
 
+      // --- GLOBAL VALIDATION ---
+      document.addEventListener("input", (e) => {
+        const { target } = e;
+
+        // 1. Phone Validation (10 digits exactly, numbers only)
+        if (
+          target.type === "tel" ||
+          target.id.includes("phone") ||
+          target.id.includes("mobile")
+        ) {
+          const clean = target.value.replace(/\D/g, ""); // Remove non-digits
+          if (clean.length > 10) {
+            target.value = clean.slice(0, 10);
+          } else {
+            target.value = clean;
+          }
+        }
+
+        // 2. Email Validation (Visual Feedback)
+        if (target.type === "email" || target.id.includes("email")) {
+          const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target.value);
+          if (!isValid && target.value.length > 0) {
+            target.style.borderColor = "var(--danger)";
+          } else {
+            target.style.borderColor = "var(--border)";
+          }
+        }
+      });
+
       // --- UTILS ---
       function loadStats() {
         /* Placeholder for backend stats endpoint if exists */
