@@ -77,6 +77,11 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/products", productRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/categories", categoryRoutes);
+// --- Admin Dashboard direct route ---
+app.get(["/api/admin", "/api/admin/"], (req, res) => {
+  res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
+});
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/upload", uploadRoutes);
