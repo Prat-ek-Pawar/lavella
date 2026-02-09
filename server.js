@@ -78,8 +78,14 @@ app.use("/api/products", productRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/categories", categoryRoutes);
 // --- Admin Dashboard direct route ---
-app.get(["/api/admin", "/api/admin/"], (req, res) => {
+// --- Admin Dashboard direct route (Broad matching to catch stripping) ---
+app.get(["/admin", "/api/admin", "/api/admin/"], (req, res) => {
   res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
+});
+
+// --- Test Route to verify deployment ---
+app.get("/api/test-deploy", (req, res) => {
+  res.json({ message: "Deployment active", time: new Date().toISOString() });
 });
 
 app.use("/api/admin", adminRoutes);
