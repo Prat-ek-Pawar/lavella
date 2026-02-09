@@ -81,10 +81,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// --- Admin Redirect ---
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
-});
+// --- Admin Dashboard is at /api/admin ---
 
 // --- Health ---
 app.get("/api/health", (req, res) => {
