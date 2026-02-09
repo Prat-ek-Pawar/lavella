@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
+const cors = require("cors");
 
 // Load env
 dotenv.config();
@@ -26,6 +27,8 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
+app.use(cors());
+
 // --- Security ---
 app.set("trust proxy", 1);
 // Allow cross-origin images/fonts (don’t block by CORP). Keep Helmet on.
@@ -35,24 +38,7 @@ app.use(
   }),
 );
 
-// --- Fully open CORS that supports credentials & file:// ---
-// If the browser sends credentials, '*' is not allowed. We reflect the Origin.
-// When opened from disk, Origin is absent; browsers treat that as 'null'.
-// We explicitly set 'null' so credentialed requests from file:// also work.
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-  );
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Authorization, Content-Type, X-Requested-With, Accept",
-  );
-  if (req.method === "OPTIONS") return res.sendStatus(204);
-  next();
-});
+// --- Fully open CORS handled by 'cors' package above ---
 
 // --- Logging ---
 if ((process.env.NODE_ENV || "development") === "development") {
