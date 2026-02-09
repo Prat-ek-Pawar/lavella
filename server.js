@@ -32,7 +32,7 @@ app.set("trust proxy", 1);
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
-  })
+  }),
 );
 
 // --- Fully open CORS that supports credentials & file:// ---
@@ -40,14 +40,21 @@ app.use(
 // When opened from disk, Origin is absent; browsers treat that as 'null'.
 // We explicitly set 'null' so credentialed requests from file:// also work.
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // allow all origins
+  const origin = req.headers.origin;
+  if (origin) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
+  } else {
+    res.header("Access-Control-Allow-Origin", "*");
+  }
+
   res.header(
     "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
   );
   res.header(
     "Access-Control-Allow-Headers",
-    "Authorization, Content-Type, X-Requested-With, Accept"
+    "Authorization, Content-Type, X-Requested-With, Accept",
   );
   if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
@@ -64,7 +71,7 @@ app.use((req, res, next) => {
   res.json = function (data) {
     if (res.statusCode === 404) {
       console.log(
-        `[404 DEBUG] URL: ${req.originalUrl} - Method: ${req.method} - IP: ${req.ip}`
+        `[404 DEBUG] URL: ${req.originalUrl} - Method: ${req.method} - IP: ${req.ip}`,
       );
     }
     return oldJson.apply(res, arguments);
@@ -96,7 +103,7 @@ app.use("/api/upload", uploadRoutes);
 
 // --- Admin Redirect ---
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin/admin.html"));
+  res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
 });
 
 // --- Health ---
@@ -138,7 +145,7 @@ const HOST = process.env.HOST || "0.0.0.0";
 const server = app.listen(PORT, HOST, () => {
   const env = process.env.NODE_ENV || "development";
   console.log(
-    `Server running in ${env} at http://127.0.0.1:${PORT} latest commit `
+    `Server running in ${env} at http://127.0.0.1:${PORT} latest commit `,
   );
   console.log(`Health:     http://127.0.0.1:${PORT}/api/health`);
   console.log(`Categories: http://127.0.0.1:${PORT}/api/categories`);
