@@ -27,7 +27,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
-app.use(cors());
+// app.use(cors()); // CORS is handled by the hosting environment (e.g. cPanel/Nginx) to avoid duplicate headers
 
 // --- Security ---
 app.set("trust proxy", 1);
@@ -77,14 +77,22 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/products", productRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/categories", categoryRoutes);
+// --- Admin Dashboard direct route ---
+// --- Admin Dashboard direct route (Broad matching to catch stripping) ---
+app.get(["/admin", "/api/admin", "/api/admin/"], (req, res) => {
+  res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
+});
+
+// --- Test Route to verify deployment ---
+app.get("/api/test-deploy", (req, res) => {
+  res.json({ message: "Deployment active", time: new Date().toISOString() });
+});
+
 app.use("/api/admin", adminRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// --- Admin Redirect ---
-app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/admin/dashboard.html"));
-});
+// --- Admin Dashboard is at /api/admin ---
 
 // --- Health ---
 app.get("/api/health", (req, res) => {
