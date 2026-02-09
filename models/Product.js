@@ -73,6 +73,11 @@ const productSchema = new mongoose.Schema(
         },
       },
     ],
+    product_guide: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     how_to_use: {
       title: {
         type: String,
