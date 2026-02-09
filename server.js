@@ -40,13 +40,7 @@ app.use(
 // When opened from disk, Origin is absent; browsers treat that as 'null'.
 // We explicitly set 'null' so credentialed requests from file:// also work.
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Credentials", "true");
-  } else {
-    res.header("Access-Control-Allow-Origin", "*");
-  }
+  res.header("Access-Control-Allow-Origin", "*");
 
   res.header(
     "Access-Control-Allow-Methods",
