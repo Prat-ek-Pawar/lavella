@@ -306,6 +306,10 @@
             <label class="form-label">Product Title</label>
             <input type="text" id="p-title" class="form-input" required />
           </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="p-featured" style="width: 20px; height: 20px;" />
+            <label for="p-featured" class="form-label" style="margin-bottom: 0;">Featured Product</label>
+          </div>
           <div class="form-group">
             <label class="form-label">Category</label>
             <select id="p-category" class="form-select" required onchange="updateSubcategories()">
@@ -334,11 +338,29 @@
             <label class="form-label">Materials (comma separated)</label>
             <input type="text" id="p-materials" class="form-input" placeholder="Silk, Velvet..." />
           </div>
+          <div class="form-group">
+            <label class="form-label">Color & Texture (comma separated)</label>
+            <input type="text" id="p-colors" class="form-input" placeholder="Red, Smooth, Textured..." />
+          </div>
 
           <div class="form-group">
             <label class="form-label">Product Guide</label>
             <textarea id="p-product-guide" class="form-textarea" rows="4"
               placeholder="Enter product guide content..."></textarea>
+          </div>
+
+          <div class="form-group"
+            style="border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; background: rgba(0,0,0,0.1);">
+            <label class="form-label" style="font-weight: 600; color: var(--primary);">How to Use Section</label>
+            <div style="margin-bottom: 1rem;">
+              <label class="form-label">Title</label>
+              <input type="text" id="p-how-title" class="form-input" placeholder="e.g. How it hangs" />
+            </div>
+            <div>
+              <label class="form-label">Points (One per line)</label>
+              <textarea id="p-how-points" class="form-textarea" rows="4"
+                placeholder="- Point 1&#10;- Point 2&#10;- Point 3"></textarea>
+            </div>
           </div>
 
           <div class="form-group">
@@ -623,6 +645,10 @@
       const priceDisc = document.getElementById("p-price-disc").value;
       const desc = document.getElementById("p-desc").value;
       const materials = document.getElementById("p-materials").value;
+      const colors = document.getElementById("p-colors").value;
+      const featured = document.getElementById("p-featured").checked;
+      const howTitle = document.getElementById("p-how-title").value;
+      const howPoints = document.getElementById("p-how-points").value;
       const productGuide = document.getElementById("p-product-guide").value;
 
       // Collect FAQs
@@ -643,7 +669,15 @@
         material_used: materials
           ? materials.split(",").map((s) => s.trim())
           : [],
+        color_and_texture: colors
+          ? colors.split(",").map((s) => s.trim())
+          : [],
         product_guide: productGuide,
+        how_to_use: {
+          title: howTitle,
+          points: howPoints ? howPoints.split("\n").map(s => s.trim()).filter(s => s) : []
+        },
+        featured: featured,
         faqs: faqs,
         images: uploadedImageUrls,
         is_active: true,
@@ -661,6 +695,10 @@
           document.getElementById("product-form").reset();
           document.getElementById("p-preview").innerHTML = "";
           document.getElementById("p-product-guide").value = "";
+          document.getElementById("p-how-title").value = "";
+          document.getElementById("p-how-points").value = "";
+          document.getElementById("p-colors").value = "";
+          document.getElementById("p-featured").checked = false;
           document.getElementById("p-faqs-container").innerHTML = "";
           uploadedImageUrls = [];
           setView("products");
