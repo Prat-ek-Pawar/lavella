@@ -295,8 +295,8 @@
     <!-- Product Form -->
     <section id="add-product-view" class="view-section">
       <div class="header">
-        <h2>Add New Product</h2>
-        <button class="btn btn-danger" onclick="setView('products')">
+        <h2 id="product-form-title">Add New Product</h2>
+        <button class="btn btn-danger" onclick="cancelEdit()">
           Cancel
         </button>
       </div>
@@ -381,7 +381,7 @@
             <div id="p-preview" class="preview-images"></div>
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%">
+          <button type="submit" id="product-submit-btn" class="btn btn-primary" style="width: 100%">
             Create Product
           </button>
         </form>
@@ -442,6 +442,7 @@
     let products = [];
     let uploadedImageUrls = [];
     let uploadedCatImageUrl = "";
+    let currentEditingProductId = null;
 
     // Init
     document.addEventListener("DOMContentLoaded", () => {
@@ -475,11 +476,27 @@
     }
 
     function showAddProduct() {
+      resetProductForm();
       document
         .querySelectorAll(".view-section")
         .forEach((el) => el.classList.remove("active"));
       document.getElementById("add-product-view").classList.add("active");
       populateCategorySelect();
+    }
+
+    function cancelEdit() {
+      resetProductForm();
+      setView('products');
+    }
+
+    function resetProductForm() {
+      currentEditingProductId = null;
+      document.getElementById("product-form").reset();
+      document.getElementById("product-form-title").innerText = "Add New Product";
+      document.getElementById("product-submit-btn").innerText = "Create Product";
+      document.getElementById("p-preview").innerHTML = "";
+      document.getElementById("p-faqs-container").innerHTML = ""; // Clear FAQs
+      uploadedImageUrls = [];
     }
 
     function showAddCategory() {
@@ -530,6 +547,9 @@
                                 <span>₹${p.original_price}</span>
                             </div>
                             <div class="card-actions">
+                                <button class="btn btn-primary" style="padding: 0.5rem; background-color: #2563eb;" onclick="editProduct('${p._id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button class="btn btn-danger" style="padding: 0.5rem" onclick="deleteProduct('${p._id}')">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -592,6 +612,65 @@
         alert("Error uploading images");
         previewContainer.innerHTML = "";
       }
+    }
+
+    function editProduct(id) {
+      const product = products.find(p => p._id === id);
+      if (!product) return;
+
+      currentEditingProductId = id;
+
+      // Populate Form Fields
+      document.getElementById("p-title").value = product.title || "";
+      document.getElementById("p-category").value = product.category || "";
+
+      // Trigger subcategory update then set value
+      populateCategorySelect();
+      document.getElementById("p-category").value = product.category || "";
+      updateSubcategories();
+      document.getElementById("p-subcategory").value = product.subcategory || "";
+
+      document.getElementById("p-price-orig").value = product.original_price || "";
+      document.getElementById("p-price-disc").value = product.discounted_price || "";
+      document.getElementById("p-desc").value = product.description || "";
+      document.getElementById("p-materials").value = product.material_used ? product.material_used.join(", ") : "";
+      document.getElementById("p-colors").value = product.color_and_texture ? product.color_and_texture.join(", ") : "";
+      document.getElementById("p-featured").checked = product.featured || false;
+      document.getElementById("p-product-guide").value = product.product_guide || "";
+
+      // Populate How to Use
+      if (product.how_to_use) {
+        document.getElementById("p-how-title").value = product.how_to_use.title || "";
+        document.getElementById("p-how-points").value = product.how_to_use.points ? product.how_to_use.points.join("\n") : "";
+      } else {
+        document.getElementById("p-how-title").value = "";
+        document.getElementById("p-how-points").value = "";
+      }
+
+      // FAQs
+      const faqContainer = document.getElementById("p-faqs-container");
+      faqContainer.innerHTML = "";
+      if (product.faqs && product.faqs.length > 0) {
+        product.faqs.forEach(faq => {
+          addFaqField(faq.question, faq.answer);
+        });
+      }
+
+      // Images
+      uploadedImageUrls = product.images || [];
+      const previewContainer = document.getElementById("p-preview");
+      previewContainer.innerHTML = uploadedImageUrls
+        .map((url) => `<img src="${url}" class="preview-thumb">`)
+        .join("");
+
+
+      // UI Updates
+      document.getElementById("product-form-title").innerText = "Edit Product";
+      document.getElementById("product-submit-btn").innerText = "Update Product";
+
+      // Show View
+      document.querySelectorAll(".view-section").forEach((el) => el.classList.remove("active"));
+      document.getElementById("add-product-view").classList.add("active");
     }
 
     async function loadSubcategories() {
@@ -684,23 +763,21 @@
       };
 
       try {
-        const res = await fetch(`${API_BASE}/products`, {
-          method: "POST",
+        const url = currentEditingProductId
+          ? `${API_BASE}/products/${currentEditingProductId}`
+          : `${API_BASE}/products`;
+
+        const method = currentEditingProductId ? "PUT" : "POST";
+
+        const res = await fetch(url, {
+          method: method,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         const data = await res.json();
         if (data.success) {
-          alert("Product Created!");
-          document.getElementById("product-form").reset();
-          document.getElementById("p-preview").innerHTML = "";
-          document.getElementById("p-product-guide").value = "";
-          document.getElementById("p-how-title").value = "";
-          document.getElementById("p-how-points").value = "";
-          document.getElementById("p-colors").value = "";
-          document.getElementById("p-featured").checked = false;
-          document.getElementById("p-faqs-container").innerHTML = "";
-          uploadedImageUrls = [];
+          alert(currentEditingProductId ? "Product Updated!" : "Product Created!");
+          resetProductForm();
           setView("products");
         } else {
           alert("Error: " + data.message);
@@ -824,7 +901,7 @@
       }
     }
 
-    function addFaqField() {
+    function addFaqField(qValue = "", aValue = "") {
       const container = document.getElementById("p-faqs-container");
       const div = document.createElement("div");
       div.className = "faq-item";
@@ -836,8 +913,8 @@
 
       div.innerHTML = `
             <div style="margin-bottom: 0.5rem;">
-                <input type="text" class="form-input faq-question" placeholder="Question" style="margin-bottom: 0.5rem;">
-                <textarea class="form-textarea faq-answer" rows="2" placeholder="Answer"></textarea>
+                <input type="text" class="form-input faq-question" placeholder="Question" value="${qValue}" style="margin-bottom: 0.5rem;">
+                <textarea class="form-textarea faq-answer" rows="2" placeholder="Answer">${aValue}</textarea>
             </div>
             <button type="button" class="btn btn-danger" onclick="removeFaqField(this)">Remove</button>
         `;
