@@ -584,7 +584,11 @@
       if (!files.length) return;
 
       const previewContainer = document.getElementById("p-preview");
-      previewContainer.innerHTML = "<p>Uploading...</p>";
+      const loadingId = "loading-" + Date.now();
+      const loadingEl = document.createElement("div");
+      loadingEl.id = loadingId;
+      loadingEl.innerText = "Uploading...";
+      previewContainer.appendChild(loadingEl);
 
       const formData = new FormData();
       for (let i = 0; i < files.length; i++) {
@@ -597,21 +601,27 @@
           body: formData,
         });
         const data = await res.json();
+
+        // Remove loading element
+        const el = document.getElementById(loadingId);
+        if (el) el.remove();
+
         if (data.success) {
-          // Corrected: uploadMultipleImages returns image_urls
-          uploadedImageUrls = data.image_urls;
-          previewContainer.innerHTML = uploadedImageUrls
-            .map((url) => `<img src="${url}" class="preview-thumb">`)
-            .join("");
+          // Append new images instead of overwriting
+          uploadedImageUrls = [...uploadedImageUrls, ...data.image_urls];
+          renderImagePreviews();
         } else {
           alert("Upload failed: " + data.message);
-          previewContainer.innerHTML = "";
         }
       } catch (err) {
         console.error(err);
+        const el = document.getElementById(loadingId);
+        if (el) el.remove();
         alert("Error uploading images");
-        previewContainer.innerHTML = "";
       }
+
+      // Reset input
+      event.target.value = '';
     }
 
     function editProduct(id) {
@@ -658,10 +668,7 @@
 
       // Images
       uploadedImageUrls = product.images || [];
-      const previewContainer = document.getElementById("p-preview");
-      previewContainer.innerHTML = uploadedImageUrls
-        .map((url) => `<img src="${url}" class="preview-thumb">`)
-        .join("");
+      renderImagePreviews();
 
 
       // UI Updates
@@ -923,6 +930,24 @@
 
     function removeFaqField(btn) {
       btn.parentElement.remove();
+    }
+
+    function renderImagePreviews() {
+      const previewContainer = document.getElementById("p-preview");
+      previewContainer.innerHTML = uploadedImageUrls.map((url, index) => `
+            <div style="position: relative; display: inline-block; margin: 10px;">
+                <img src="${url}" class="preview-thumb">
+                <button type="button" onclick="removeImage(${index})" 
+                    style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    <i class="fas fa-times" style="font-size: 12px;"></i>
+                </button>
+            </div>
+        `).join("");
+    }
+
+    function removeImage(index) {
+      uploadedImageUrls.splice(index, 1);
+      renderImagePreviews();
     }
   </script>
 </body>
