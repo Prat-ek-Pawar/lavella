@@ -32,6 +32,6 @@
     "sib-api-v3-sdk": "^8.5.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.11"
   }
 }

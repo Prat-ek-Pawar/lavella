@@ -46,11 +46,12 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    images: {
-      type: [String],
-      required: false,
-      default: [],
-    },
+    images: [
+      {
+        url: { type: String, required: true },
+        color: { type: String, default: "default" },
+      },
+    ],
     material_used: {
       type: [String],
       required: false,

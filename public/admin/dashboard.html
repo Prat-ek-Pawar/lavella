@@ -533,10 +533,10 @@
       const grid = document.getElementById("products-grid");
       grid.innerHTML = products
         .map((p) => {
-          const img =
-            p.images && p.images.length > 0
-              ? p.images[0]
-              : "https://via.placeholder.com/300?text=No+Image";
+          const firstImg = p.images && p.images.length > 0 ? p.images[0] : null;
+          const img = firstImg
+            ? (typeof firstImg === 'string' ? firstImg : firstImg.url)
+            : "https://via.placeholder.com/300?text=No+Image";
           return `
                     <div class="card">
                         <img src="${img}" class="card-img" alt="${p.title}">
@@ -607,8 +607,9 @@
         if (el) el.remove();
 
         if (data.success) {
-          // Append new images instead of overwriting
-          uploadedImageUrls = [...uploadedImageUrls, ...data.image_urls];
+          // Append new images as objects
+          const newImages = data.image_urls.map(url => ({ url, color: 'default' }));
+          uploadedImageUrls = [...uploadedImageUrls, ...newImages];
           renderImagePreviews();
         } else {
           alert("Upload failed: " + data.message);
@@ -667,7 +668,10 @@
       }
 
       // Images
-      uploadedImageUrls = product.images || [];
+      // Ensure images are objects with url and color
+      uploadedImageUrls = (product.images || []).map(img =>
+        typeof img === 'string' ? { url: img, color: 'default' } : img
+      );
       renderImagePreviews();
 
 
@@ -934,15 +938,25 @@
 
     function renderImagePreviews() {
       const previewContainer = document.getElementById("p-preview");
-      previewContainer.innerHTML = uploadedImageUrls.map((url, index) => `
-            <div style="position: relative; display: inline-block; margin: 10px;">
-                <img src="${url}" class="preview-thumb">
+      previewContainer.innerHTML = uploadedImageUrls.map((imgObj, index) => `
+            <div style="position: relative; display: inline-block; margin: 10px; text-align: center;">
+                <img src="${imgObj.url}" class="preview-thumb">
+                <input type="text" value="${imgObj.color || 'default'}" 
+                       onchange="updateImageColor(${index}, this.value)"
+                       placeholder="Color"
+                       style="display: block; width: 80px; margin-top: 5px; padding: 4px; font-size: 12px; border: 1px solid #ccc; border-radius: 4px;">
                 <button type="button" onclick="removeImage(${index})" 
-                    style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                    style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
                     <i class="fas fa-times" style="font-size: 12px;"></i>
                 </button>
             </div>
         `).join("");
+    }
+
+    function updateImageColor(index, color) {
+      if (uploadedImageUrls[index]) {
+        uploadedImageUrls[index].color = color;
+      }
     }
 
     function removeImage(index) {
