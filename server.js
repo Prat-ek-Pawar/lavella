@@ -27,7 +27,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
-// app.use(cors()); // CORS is handled by the hosting environment (e.g. cPanel/Nginx) to avoid duplicate headers
+app.use(cors({ origin: "*" }));
 
 // --- Security ---
 app.set("trust proxy", 1);

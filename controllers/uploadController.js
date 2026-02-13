@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Ensure temp dir exists (important on fresh deploys)
-fs.mkdirSync('uploads/temp', { recursive: true });
+const os = require('os');
 
 // Configure AWS S3
 const s3 = new AWS.S3({
@@ -17,7 +17,7 @@ const s3 = new AWS.S3({
 
 // Multer temp storage
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/temp'),
+  destination: (req, file, cb) => cb(null, os.tmpdir()),
   filename: (req, file, cb) => {
     const base = path.parse(file.originalname).name.replace(/\s+/g, '_');
     // local temp file name, extension doesn't really matter now
@@ -87,7 +87,7 @@ const uploadController = {
         req.file?.path &&
           fs.existsSync(req.file.path) &&
           fs.unlinkSync(req.file.path);
-      } catch {}
+      } catch { }
       return res
         .status(500)
         .json({ success: false, message: error.message });
@@ -146,7 +146,7 @@ const uploadController = {
         req.files?.forEach(f => {
           f?.path && fs.existsSync(f.path) && fs.unlinkSync(f.path);
         });
-      } catch {}
+      } catch { }
       return res
         .status(500)
         .json({ success: false, message: error.message });
