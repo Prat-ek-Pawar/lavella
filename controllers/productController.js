@@ -10,6 +10,38 @@ const slugify = (text) => {
     .replace(/--+/g, "-"); // Replace multiple - with single -
 };
 
+// Helper to sanitize product data
+const formatProduct = (product) => {
+  if (!product) return null;
+  const p = product.toObject ? product.toObject() : product;
+
+  return {
+    _id: p._id,
+    title: p.title || "",
+    slug: p.slug || "",
+    description: p.description || "",
+    category_id: p.category_id || "",
+    category: p.category || "",
+    subcategory: p.subcategory || "",
+    original_price: typeof p.original_price === 'number' ? p.original_price : 0,
+    discounted_price: typeof p.discounted_price === 'number' ? p.discounted_price : 0,
+    featured: !!p.featured,
+    images: Array.isArray(p.images) ? p.images : [],
+    material_used: Array.isArray(p.material_used) ? p.material_used : [],
+    color_and_texture: Array.isArray(p.color_and_texture) ? p.color_and_texture : [],
+    faqs: Array.isArray(p.faqs) ? p.faqs : [],
+    product_guide: p.product_guide || "",
+    how_to_use: {
+      title: (p.how_to_use && p.how_to_use.title) || "",
+      points: (p.how_to_use && Array.isArray(p.how_to_use.points)) ? p.how_to_use.points : []
+    },
+    is_active: !!p.is_active,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+    __v: p.__v
+  };
+};
+
 const productController = {
   // Create new product - Admin only
   createProduct: async (req, res) => {
@@ -21,7 +53,12 @@ const productController = {
       }
       const product = new Product(productData);
       await product.save();
-      res.status(201).json({ success: true, data: product });
+      // Return formatted product even on create
+      res.status(201).json({
+        success: true,
+        message: "Product created successfully",
+        data: formatProduct(product)
+      });
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
     }
@@ -31,7 +68,12 @@ const productController = {
   getAllProducts: async (req, res) => {
     try {
       const products = await Product.find({ is_active: true });
-      res.json({ success: true, data: products });
+      const formattedProducts = products.map(formatProduct);
+      res.json({
+        success: true,
+        message: "Products fetched successfully",
+        data: formattedProducts
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -61,7 +103,11 @@ const productController = {
           .json({ success: false, message: "Product not found" });
       }
 
-      res.json({ success: true, data: product });
+      res.json({
+        success: true,
+        message: "Product fetched successfully",
+        data: formatProduct(product)
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -74,7 +120,12 @@ const productController = {
         featured: true,
         is_active: true,
       });
-      res.json({ success: true, data: products });
+      const formattedProducts = products.map(formatProduct);
+      res.json({
+        success: true,
+        message: "Featured products fetched successfully",
+        data: formattedProducts
+      });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
@@ -144,9 +195,12 @@ const productController = {
 
       const total = await Product.countDocuments(filter);
 
+      const formattedProducts = products.map(formatProduct);
+
       res.json({
         success: true,
-        data: products,
+        message: "Filtered products fetched successfully",
+        data: formattedProducts,
         pagination: {
           total,
           page: Number(page),
@@ -179,7 +233,11 @@ const productController = {
           .json({ success: false, message: "Product not found" });
       }
 
-      res.json({ success: true, data: product });
+      res.json({
+        success: true,
+        message: "Product updated successfully",
+        data: formatProduct(product)
+      });
     } catch (error) {
       res.status(400).json({ success: false, message: error.message });
     }
